@@ -1,6 +1,7 @@
 from socket import *
 from getch import _Getch
-
+#TESTSSH
+hello="SSSSS"
 serverName = 'localhost'
 serverPort = 12000
 TeamName = b'EdenAndSarit\n'
