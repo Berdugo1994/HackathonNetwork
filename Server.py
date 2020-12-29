@@ -24,10 +24,9 @@ def server_connection_UDP():
     # TODO: check work
     game_on = True
 
-#     TODO: send welcome message with team names TCP
-    welcome_message = "Welcome to Keyboard Spamming Battle Royale."
+    welcome_message = "Welcome to Keyboard Spamming Battle Royale.\n"
     for k in groups.keys():
-        welcome_message += '\n Group' + str(k) + ":\n==\n"
+        welcome_message += 'Group' + str(k) + ":\n==\n"
         for team in groups[k]:
             welcome_message += team[0]
 
@@ -55,10 +54,10 @@ def tcp_client_connection(c):
 
         # data received from client
         data = c.recv(1024)
-        str_data = str(data)
+        str_data = data.decode("utf-8")
 
-        if not game_on:# and '\n' in str_data:
-            team_name = str_data.replace('\n', '')
+        if not game_on and '\n' in str_data:
+            team_name = str_data
             group = random.randint(1, 2)
             groups[group].append((team_name, c))
         elif game_on:
@@ -69,13 +68,6 @@ def tcp_client_connection(c):
             print('Bye')
             break
 
-        # reverse the given string from client
-        data = data[::-1]
-
-        # send back reversed string to client
-        # c.send(data)
-
-        # connection closed
     c.close()
 
 
@@ -85,8 +77,6 @@ def listen_tcp(tcp_master_socket):
         # establish connection with client
         c, addr = tcp_master_socket.accept()
 
-        # lock acquired by client
-        # print_lock.acquire()
         print('Connected to :', addr[0], ':', addr[1])
 
         # Start a new thread and return its identifier

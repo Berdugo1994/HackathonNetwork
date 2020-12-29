@@ -32,15 +32,7 @@ def listen_tcp(socket):
     while True:
         # data received from client
         data = socket.recv(1024)
-        # TODO: convert normally from bytes to string
-        print(str(data))
-
-    # while True:
-    #
-    #     # data received from client
-    #     data = c.recv(1024) #should be welcome message
-    #     print(data)
-
+        print(data.decode("utf-8"))
 
 #         TODO: send back letters
 
