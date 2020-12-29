@@ -105,6 +105,3 @@ if __name__ == '__main__':
     server_connection_UDP()
     while True:
         x = 1
-
-
-
