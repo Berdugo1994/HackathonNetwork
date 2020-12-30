@@ -107,7 +107,7 @@ class Server:
         finish_message += "\nGame Over"
         self.send_all_clients_message(finish_message)
         time.sleep(1)
-        finish_game()
+        self.finish_game()
     print_lock = threading.Lock()
 
     def buffer_results(self):
