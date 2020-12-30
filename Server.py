@@ -36,6 +36,9 @@ class Server:
         self.server_connection_UDP()
 
     def create_server_tcp(self):
+        """
+        create master tcp socket
+        """
         tcp_server_master_socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         tcp_server_master_socket.bind(
@@ -43,11 +46,11 @@ class Server:
         tcp_server_master_socket.listen(1)
         return tcp_server_master_socket
 
-    """
-    tcp_master_socket : every user that sends request gets here a new thread.
-    """
 
     def listen_tcp(self, tcp_master_socket):
+        """
+        server listening wait for a tcp connection
+        """
         # a forever loop until client wants to exit
         while True:
             # establish connection with client
@@ -58,6 +61,9 @@ class Server:
             start_new_thread(self.tcp_client_connection, (c,))
 
     def server_connection_UDP(self):
+        """
+        server sending udp broadcast
+        """
         self.game_on = False
         udp_server_socket = socket.socket(
             socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -72,10 +78,9 @@ class Server:
         # counts 10 seconds until starts
         while count < 10:
             udp_server_socket.sendto(
-                message, ('<broadcast>', self.UDP_port))
+                message, ('172.1.255.255', self.UDP_port))
             time.sleep(1)
             count += 1
-        # TODO: check work
         udp_server_socket.close()
         welcome_message = "Welcome to Keyboard Spamming Battle Royale.\n"
         for k in self.groups.keys():
@@ -85,7 +90,6 @@ class Server:
         welcome_message += "Start pressing keys on your keyboard as fast as you can!!\n"
         welcome_message += "Time Started !! 20 sec lets go\n"
         self.send_all_clients_message(welcome_message)
-        print("Game started")
         self.game_on = True
         time.sleep(10)
         finish_message = "Game over!\n"
@@ -106,7 +110,10 @@ class Server:
         finish_game()
     print_lock = threading.Lock()
 
-    def buffer_results(self, c):
+    def buffer_results(self):
+        """
+        counting results
+        """
         if self.game_on:
             group_one = []
             for tup in self.groups[1]:
@@ -116,20 +123,24 @@ class Server:
             else:
                 self.two_team_score += 1
 
-    #     Start counting
 
     def send_all_clients_message(self, message):
+        """
+        send message to all clients
+        """
         for c in self.clients_sockets_list:
             c.send(bytes(message, 'utf-8'))
 
-    # thread function
 
     def tcp_client_connection(self, c):
+        """
+        this is the thread function
+        divide clients to groups
+        """
         while True:
             # data received from client
             data = c.recv(1024)
             str_data = data.decode("utf-8")
-            print(str_data)
             if not self.game_on and '\n' in str_data:
                 team_name = str_data
                 if self.num_of_users_at_one <= self.num_of_users_at_two:
@@ -138,10 +149,13 @@ class Server:
                     group = 2
                 self.groups[group].append((team_name, c))
             elif self.game_on:
-                self.buffer_results(c)
+                self.buffer_results()
         c.close()
 
     def finish_game(self):
+        """
+        delete the former values belongs to last game
+        """
         self.groups = {
             1: [],
             2: []
@@ -158,3 +172,4 @@ class Server:
 if __name__ == '__main__':
     while True:
         server = Server()
+        time.sleep(1)
