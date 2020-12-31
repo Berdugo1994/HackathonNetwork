@@ -20,10 +20,10 @@ class Server:
             2: []
         }
         self.game_on = False
-        self.UDP_port = 13117
+        self.UDP_port = 13120
         self.bufferSize = 1024
-        self.server_static_port = 2057
-        self.TCP_server_master_port = 2058
+        self.server_static_port = 2557
+        self.TCP_server_master_port = 7503
         self.clients_sockets_list = []
         self.one_team_score = 0
         self.two_team_score = 0
@@ -36,6 +36,9 @@ class Server:
         self.server_connection_UDP()
 
     def create_server_tcp(self):
+        """
+        create master tcp socket
+        """
         tcp_server_master_socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         tcp_server_master_socket.bind(
@@ -43,13 +46,13 @@ class Server:
         tcp_server_master_socket.listen(1)
         return tcp_server_master_socket
 
-    """
-    tcp_master_socket : every user that sends request gets here a new thread.
-    """
-
     def listen_tcp(self, tcp_master_socket):
+        """
+        server listening wait for a tcp connection
+        """
         # a forever loop until client wants to exit
         while True:
+            time.sleep(0.1)
             # establish connection with client
             c, addr = tcp_master_socket.accept()
             print('Connected to :', addr[0], ':', addr[1])
@@ -58,6 +61,9 @@ class Server:
             start_new_thread(self.tcp_client_connection, (c,))
 
     def server_connection_UDP(self):
+        """
+        server sending udp broadcast
+        """
         self.game_on = False
         udp_server_socket = socket.socket(
             socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -72,11 +78,9 @@ class Server:
         # counts 10 seconds until starts
         while count < 10:
             udp_server_socket.sendto(
-                message, ('<broadcast>', self.UDP_port))
+                message, ('172.1.255.255', self.UDP_port))
             time.sleep(1)
             count += 1
-        # TODO: check work
-        udp_server_socket.close()
         welcome_message = "Welcome to Keyboard Spamming Battle Royale.\n"
         for k in self.groups.keys():
             welcome_message += 'Group' + str(k) + ":\n==\n"
@@ -85,7 +89,6 @@ class Server:
         welcome_message += "Start pressing keys on your keyboard as fast as you can!!\n"
         welcome_message += "Time Started !! 20 sec lets go\n"
         self.send_all_clients_message(welcome_message)
-        print("Game started")
         self.game_on = True
         time.sleep(10)
         finish_message = "Game over!\n"
@@ -93,20 +96,30 @@ class Server:
         finish_message += str(self.one_team_score)
         finish_message += " characters. Group 2 typed in "
         finish_message += str(self.two_team_score)
-        finish_message += "characters.\n"
+        finish_message += " characters.\n"
+        winner_team_num = 0
         if self.one_team_score > self.two_team_score:
-            finish_message += "Group 1 wins"
+            finish_message += "Group 1 wins!\n"
+            winner_team_num = 1
         elif self.one_team_score == self.two_team_score:
-            finish_message += "It's a draw !!!"
+            finish_message += "It's a draw !!!\n"
         else:
-            finish_message += "Group 2 wins"
-        finish_message += "\nGame Over"
+            finish_message += "Group 2 wins!\n\n"
+            winner_team_num = 2
+        if winner_team_num != 0:
+            finish_message += "Congratulations to the winners:\n==\n"
+            for team in self.groups[winner_team_num]:
+                finish_message += str(team[0])+'\n'
         self.send_all_clients_message(finish_message)
         time.sleep(1)
-        finish_game()
-    print_lock = threading.Lock()
+        self.finish_game()
+        udp_server_socket.close()
+    #print_lock = threading.Lock()
 
     def buffer_results(self, c):
+        """
+        counting results
+        """
         if self.game_on:
             group_one = []
             for tup in self.groups[1]:
@@ -116,20 +129,23 @@ class Server:
             else:
                 self.two_team_score += 1
 
-    #     Start counting
-
     def send_all_clients_message(self, message):
+        """
+        send message to all clients
+        """
         for c in self.clients_sockets_list:
             c.send(bytes(message, 'utf-8'))
 
-    # thread function
-
     def tcp_client_connection(self, c):
+        """
+        this is the thread function
+        divide clients to groups
+        """
         while True:
+            time.sleep(0.1)
             # data received from client
             data = c.recv(1024)
             str_data = data.decode("utf-8")
-            print(str_data)
             if not self.game_on and '\n' in str_data:
                 team_name = str_data
                 if self.num_of_users_at_one <= self.num_of_users_at_two:
@@ -142,6 +158,9 @@ class Server:
         c.close()
 
     def finish_game(self):
+        """
+        delete the former values belongs to last game
+        """
         self.groups = {
             1: [],
             2: []
@@ -156,5 +175,11 @@ class Server:
 
 
 if __name__ == '__main__':
+
     while True:
-        server = Server()
+        try:
+            time.sleep(0.1)
+            server = Server()
+            time.sleep(1)
+        except:
+            pass
