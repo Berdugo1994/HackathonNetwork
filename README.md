@@ -12,3 +12,20 @@ Do you think you are typing faster than us ? Lets battle !!!
 on the left side you can see the server interface, and on the right the client.
 The project done by Sarit Hollander and me.
 ![Server Client run](https://i.ibb.co/ZSqBcvK/client-server.png)
+
+
+
+**
+To connect to remote : you must login to your VPN ,
+have a file named 'config' on C:\Users\#yourName"\.ssh
+with the next lines :
+        Host *remoteName*
+        Hostname *IPAdress of remote*
+        Port *SELECT-PORT*
+        User *type*
+
+then on the cmd : ssh *remoteName*
+enter password if needed
+cd to your path.
+then :"python3 Server.py/Client.py"
+
